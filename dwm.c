@@ -184,6 +184,7 @@ static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
+static void movecenter(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
@@ -1068,6 +1069,8 @@ manage(Window w, XWindowAttributes *wa)
 	updatewindowtype(c);
 	updatesizehints(c);
 	updatewmhints(c);
+	c->x = c->mon->wx + (c->mon->ww - WIDTH(c) - c->bw) / 2;
+	c->y = c->mon->wy + (c->mon->wh - HEIGHT(c) - c->bw) / 2;
 	XSelectInput(dpy, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
 	grabbuttons(c, 0);
 	if (!c->isfloating)
@@ -1200,6 +1203,14 @@ movemouse(const Arg *arg)
 		selmon = m;
 		focus(NULL);
 	}
+}
+
+void
+movecenter(const Arg *arg)
+{
+	selmon->sel->x = selmon->sel->mon->wx + (selmon->sel->mon->ww - WIDTH(selmon->sel) - selmon->sel->bw) / 2;
+	selmon->sel->y = selmon->sel->mon->wy + (selmon->sel->mon->wh - HEIGHT(selmon->sel) - selmon->sel->bw) / 2;
+	arrange(selmon);
 }
 
 Client *
@@ -1732,6 +1743,10 @@ togglefloating(const Arg *arg)
 	if (selmon->sel->isfloating)
 		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
 			selmon->sel->w, selmon->sel->h, 0);
+
+	selmon->sel->x = selmon->sel->mon->wx + (selmon->sel->mon->ww - WIDTH(selmon->sel) - selmon->sel->bw) / 2;
+	selmon->sel->y = selmon->sel->mon->wy + (selmon->sel->mon->wh - HEIGHT(selmon->sel) - selmon->sel->bw) / 2;
+
 	arrange(selmon);
 }
 
