@@ -1083,8 +1083,8 @@ manage(Window w, XWindowAttributes *wa)
 	updatewindowtype(c);
 	updatesizehints(c);
 	updatewmhints(c);
-	c->x = c->mon->wx + (c->mon->ww - WIDTH(c) - c->bw) / 2;
-	c->y = c->mon->wy + (c->mon->wh - HEIGHT(c) - c->bw) / 2;
+	c->x = c->mon->wx + ((c->mon->ww / 2) - (WIDTH(c) / 2));
+	c->y = c->mon->wy + ((c->mon->wh / 2) - (HEIGHT(c) / 2));
 	XSelectInput(dpy, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
 	grabbuttons(c, 0);
 	if (!c->isfloating)
@@ -1271,8 +1271,13 @@ movestack(const Arg *arg) {
 void
 movecenter(const Arg *arg)
 {
-	selmon->sel->x = selmon->sel->mon->wx + (selmon->sel->mon->ww - WIDTH(selmon->sel) - selmon->sel->bw) / 2;
-	selmon->sel->y = selmon->sel->mon->wy + (selmon->sel->mon->wh - HEIGHT(selmon->sel) - selmon->sel->bw) / 2;
+	Client *c = selmon->sel;
+
+	if (!c)
+		return;
+
+	c->x = c->mon->wx + ((c->mon->ww / 2) - (WIDTH(c) / 2));
+	c->y = c->mon->wy + ((c->mon->wh / 2) - (HEIGHT(c) / 2));
 	arrange(selmon);
 }
 
@@ -1812,8 +1817,8 @@ togglefloating(const Arg *arg)
 		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
 			selmon->sel->w, selmon->sel->h, 0);
 
-	selmon->sel->x = selmon->sel->mon->wx + (selmon->sel->mon->ww - WIDTH(selmon->sel) - selmon->sel->bw) / 2;
-	selmon->sel->y = selmon->sel->mon->wy + (selmon->sel->mon->wh - HEIGHT(selmon->sel) - selmon->sel->bw) / 2;
+	selmon->sel->x = selmon->sel->mon->wx + ((selmon->sel->mon->ww / 2) - (WIDTH(selmon->sel) / 2));
+	selmon->sel->y = selmon->sel->mon->wy + ((selmon->sel->mon->wh / 2) - (HEIGHT(selmon->sel) / 2));
 
 	arrange(selmon);
 }

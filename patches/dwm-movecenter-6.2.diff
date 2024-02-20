@@ -29,8 +29,13 @@ index 4465af1..292c70e 100644
 +void
 +movecenter(const Arg *arg)
 +{
-+	selmon->sel->x = selmon->sel->mon->mx + (selmon->sel->mon->mw - WIDTH(selmon->sel)) / 2;
-+	selmon->sel->y = selmon->sel->mon->my + (selmon->sel->mon->mh - HEIGHT(selmon->sel)) / 2;
++	Client *c = selmon->sel;
++
++	if (!c)
++		return;
++
++	c->x = c->mon->wx + ((c->mon->ww / 2) - (WIDTH(c) / 2));
++	c->y = c->mon->wy + ((c->mon->wh / 2) - (HEIGHT(c) / 2));
 +	arrange(selmon);
 +}
 +
