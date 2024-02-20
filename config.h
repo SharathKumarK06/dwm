@@ -18,17 +18,24 @@ static const char *colors[][3]      = {
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
 };
 
+const char *spcmd1[] = {"st", "-n", "spterm", "-g", "120x34", NULL };
+
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static Sp scratchpads[] = {
+	/* name          cmd  */
+	{"spterm",      spcmd1},
+};
 
 static const Rule rules[] = {
 	/* xprop(1):
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
+	/* class      instance    title               tags mask     isfloating   monitor */
+	{ "Gimp",     NULL,       NULL,               0,            1,           -1 },
+	{ "Firefox",  NULL,       NULL,               1 << 8,       0,           -1 },
+	{ NULL,       "spterm",   NULL,               SPTAG(2),     1,           -1 },
 };
 
 /* layout(s) */
@@ -89,6 +96,7 @@ static const Key keys[] = {
 	{ MODKEY,                               XK_period,          focusmon,           {.i = +1 } },
 	{ MODKEY|ShiftMask,                     XK_comma,           tagmon,             {.i = -1 } },
 	{ MODKEY|ShiftMask,                     XK_period,          tagmon,             {.i = +1 } },
+	{ MODKEY,                               XK_s,               togglescratch,      {.ui = 0 } },
 	{ MODKEY,                               XK_c,               movecenter,         {0} },
 	TAGKEYS(                                XK_1,                                   0)
 	TAGKEYS(                                XK_2,                                   1)
