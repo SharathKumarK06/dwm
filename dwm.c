@@ -59,6 +59,7 @@
 #define SPTAG(i)                ((1 << LENGTH(tags)) << (i))
 #define SPTAGMASK               (((1 << LENGTH(scratchpads))-1) << LENGTH(tags))
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define WINSEL_PREFIX "Focused: "
 
 /* Undefined in X11/X.h buttons that are actualy exist and correspond to
  * horizontal scroll
@@ -210,7 +211,9 @@ static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void resizemousescroll(const Arg *arg);
 static void restack(Monitor *m);
+static void restoresession(void);
 static void run(void);
+static void savesession(void);
 static void scan(void);
 static int sendevent(Client *c, Atom proto);
 static void sendmon(Client *c, Monitor *m);
@@ -222,6 +225,8 @@ static void setmfact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
+static void sighup(int unused);
+static void sigterm(int unused);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
@@ -278,6 +283,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[UnmapNotify] = unmapnotify
 };
 static Atom wmatom[WMLast], netatom[NetLast];
+static int restart = 0;
 static int running = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
@@ -1344,6 +1350,11 @@ propertynotify(XEvent *e)
 void
 quit(const Arg *arg)
 {
+	if(arg->i) {
+		restart = 1;
+		savesession();
+	}
+
 	running = 0;
 }
 
@@ -1505,6 +1516,80 @@ restack(Monitor *m)
 }
 
 void
+restoresession(void)
+{
+	/* restore session */
+	FILE *fr = fopen(SESSION_FILE, "r");
+	if (!fr)
+		return;
+
+	int wasfocused = 0;
+	Client *lastfocusedclient = NULL;
+	unsigned int lastfocusedclienttag = 0;
+
+	/* allocate enough space for expected input from text file */
+	char *str = malloc(23 * sizeof(char));
+
+	/* read file till the end */
+	while (fscanf(fr, "%[^\n] ", str) != EOF) {
+		long unsigned int winid;
+		unsigned int tagsforwin;
+
+		/* Check for selected window first */
+		if (!wasfocused) {
+			int check = sscanf(str, WINSEL_PREFIX"%lu %u", &winid, &tagsforwin); /* get data */
+			if (check == 2) {
+				lastfocusedclienttag = tagsforwin;
+				for (Client * c = selmon->clients; c != NULL; c = c->next) {
+					if (winid == c->win) {
+						lastfocusedclient = c;
+						wasfocused = 1;
+						break;
+					}
+				}
+			}
+		}
+
+		int check = sscanf(str, "%lu %u", &winid, &tagsforwin); /* get data */
+		if (check != 2) /* break loop if data wasn't read correctly */
+			break;
+
+		for (Client *c = selmon->clients; c ; c = c->next) { /* add tags to every window by winid */
+			if (c->win == winid) {
+				c->tags = tagsforwin;
+				break;
+			}
+		}
+	}
+
+	for (Client *c = selmon->clients; c ; c = c->next) { /* refocus on windows */
+		focus(c);
+		restack(c->mon);
+	}
+
+	for (Monitor *m = selmon; m; m = m->next) /* rearrange all monitors */
+		arrange(m);
+
+	/* Focus on last focused client */
+	if (wasfocused == 1) {
+		/* Change tag */
+		Arg arg;
+		arg.ui = lastfocusedclienttag;
+		view(&arg);
+
+		/* Focus client */
+		focus(lastfocusedclient);
+		restack(lastfocusedclient->mon);
+	}
+
+	free(str);
+	fclose(fr);
+
+	/* delete session file */
+	remove(SESSION_FILE);
+}
+
+void
 run(void)
 {
 	XEvent ev;
@@ -1513,6 +1598,22 @@ run(void)
 	while (running && !XNextEvent(dpy, &ev))
 		if (handler[ev.type])
 			handler[ev.type](&ev); /* call handler */
+}
+
+void
+savesession(void)
+{
+	FILE *fw = fopen(SESSION_FILE, "w");
+	/* get all the clients with their tags and write them to the file */
+	for (Client *c = selmon->clients; c != NULL; c = c->next) {
+		fprintf(fw, "%lu %u\n", c->win, c->tags);
+	}
+
+	/* Write focused client to file */
+	if (selmon->sel != NULL)
+		fprintf(fw, WINSEL_PREFIX"%lu %u\n", selmon->sel->win, selmon->sel->tags);
+
+	fclose(fw);
 }
 
 void
@@ -1678,6 +1779,9 @@ setup(void)
 	/* clean up any zombies (inherited from .xinitrc etc) immediately */
 	while (waitpid(-1, NULL, WNOHANG) > 0);
 
+	signal(SIGHUP, sighup);
+	signal(SIGTERM, sigterm);
+
 	/* init screen */
 	screen = DefaultScreen(dpy);
 	sw = DisplayWidth(dpy, screen);
@@ -1772,6 +1876,20 @@ showhide(Client *c)
 		showhide(c->snext);
 		XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->y);
 	}
+}
+
+void
+sighup(int unused)
+{
+	Arg a = {.i = 1};
+	quit(&a);
+}
+
+void
+sigterm(int unused)
+{
+	Arg a = {.i = 0};
+	quit(&a);
 }
 
 void
@@ -2318,7 +2436,9 @@ main(int argc, char *argv[])
 		die("pledge");
 #endif /* __OpenBSD__ */
 	scan();
+	restoresession();
 	run();
+	if(restart) execvp(argv[0], argv);
 	cleanup();
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;
