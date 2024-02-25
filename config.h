@@ -67,6 +67,8 @@ static const Layout layouts[] = {
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
+#define STATUSBAR "dwmblocks"
+
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-c", "-l", "10", "-m", dmenumon, "-fn", dmenufont, 
@@ -129,21 +131,23 @@ static const int scrollargs[][2] = {
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
-	/* click                event mask      button          function           argument */
-	{ ClkLtSymbol,          0,              Button1,        setlayout,         {0} },
-	{ ClkLtSymbol,          0,              Button3,        setlayout,         {.v = &layouts[2]} },
-	{ ClkWinTitle,          0,              Button2,        zoom,              {0} },
-	{ ClkStatusText,        0,              Button2,        spawn,             {.v = termcmd } },
-	{ ClkClientWin,         MODKEY,         Button1,        movemouse,         {0} },
-	{ ClkClientWin,         MODKEY,         Button2,        togglefloating,    {0} },
-	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,       {0} },
-	{ ClkClientWin,         MODKEY,         Button4,        resizemousescroll, {.v = &scrollargs[0]} },
-	{ ClkClientWin,         MODKEY,         Button5,        resizemousescroll, {.v = &scrollargs[1]} },
-	{ ClkClientWin,         MODKEY,         Button6,        resizemousescroll, {.v = &scrollargs[2]} },
-	{ ClkClientWin,         MODKEY,         Button7,        resizemousescroll, {.v = &scrollargs[3]} },
-	{ ClkTagBar,            0,              Button1,        view,              {0} },
-	{ ClkTagBar,            0,              Button3,        toggleview,        {0} },
-	{ ClkTagBar,            MODKEY,         Button1,        tag,               {0} },
-	{ ClkTagBar,            MODKEY,         Button3,        toggletag,         {0} },
+	/* click                event mask      button          function            argument */
+	{ ClkLtSymbol,          0,              Button1,        setlayout,          {0} },
+	{ ClkLtSymbol,          0,              Button3,        setlayout,          {.v = &layouts[2]} },
+	{ ClkWinTitle,          0,              Button2,        zoom,               {0} },
+	{ ClkStatusText,        0,              Button1,        sigstatusbar,       {.i = 1} },
+	{ ClkStatusText,        0,              Button2,        sigstatusbar,       {.i = 2} },
+	{ ClkStatusText,        0,              Button3,        sigstatusbar,       {.i = 3} },
+	{ ClkClientWin,         MODKEY,         Button1,        movemouse,          {0} },
+	{ ClkClientWin,         MODKEY,         Button2,        togglefloating,     {0} },
+	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,        {0} },
+	{ ClkClientWin,         MODKEY,         Button4,        resizemousescroll,  {.v = &scrollargs[0]} },
+	{ ClkClientWin,         MODKEY,         Button5,        resizemousescroll,  {.v = &scrollargs[1]} },
+	{ ClkClientWin,         MODKEY,         Button6,        resizemousescroll,  {.v = &scrollargs[2]} },
+	{ ClkClientWin,         MODKEY,         Button7,        resizemousescroll,  {.v = &scrollargs[3]} },
+	{ ClkTagBar,            0,              Button1,        view,               {0} },
+	{ ClkTagBar,            0,              Button3,        toggleview,         {0} },
+	{ ClkTagBar,            MODKEY,         Button1,        tag,                {0} },
+	{ ClkTagBar,            MODKEY,         Button3,        toggletag,          {0} },
 };
 
