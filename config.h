@@ -111,6 +111,8 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,                     XK_n,               togglealttag,       {0} },
 	{ MODKEY,                               XK_s,               togglescratch,      {.ui = 0 } },
 	{ MODKEY,                               XK_c,               movecenter,         {0} },
+	{ MODKEY,                               XK_n,               viewadjacent,       {.i = +1 } },
+	{ MODKEY|ShiftMask,                     XK_n,               viewadjacent,       {.i = -1 } },
 	TAGKEYS(                                XK_1,                                   0)
 	TAGKEYS(                                XK_2,                                   1)
 	TAGKEYS(                                XK_3,                                   2)
