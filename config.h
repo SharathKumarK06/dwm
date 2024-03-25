@@ -20,7 +20,8 @@ static const char *colors[][3]      = {
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
 };
 
-const char *spcmd1[] = {"st", "-n", "spterm", "-g", "120x34", NULL };
+const char *spcmd1[] = {"st", "-c", "st-256color", "-n", "spterm",
+	"-t", "Scratchpad", "-g", "120x34", NULL };
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -38,7 +39,7 @@ static const Rule rules[] = {
 	/* class                instance    title               tags mask     isfloating   monitor */
 	{ "Gimp",               NULL,       NULL,               0,            1,           -1 },
 	{ "Firefox",            NULL,       NULL,               1 << 8,       0,           -1 },
-	{ NULL,                 "spterm",   NULL,               SPTAG(2),     1,           -1 },
+	{ "st-256color",        "spterm",   "Scratchpad",       SPTAG(0),     1,           -1 },
 	{ "jetbrains-studio",   NULL,       NULL,               0,            1,           -1 },
 };
 
