@@ -111,6 +111,14 @@ static const Key keys[] = {
 	{ MODKEY,                               XK_c,               movecenter,         {0} },
 	{ MODKEY,                               XK_n,               viewadjacent,       {.i = +1 } },
 	{ MODKEY|ShiftMask,                     XK_n,               viewadjacent,       {.i = -1 } },
+	{ MODKEY,                               XK_Down,            moveresize,         {.v = (int []){ 0, 25, 0, 0 }}},
+	{ MODKEY,                               XK_Up,              moveresize,         {.v = (int []){ 0, -25, 0, 0 }}},
+	{ MODKEY,                               XK_Right,           moveresize,         {.v = (int []){ 25, 0, 0, 0 }}},
+	{ MODKEY,                               XK_Left,            moveresize,         {.v = (int []){ -25, 0, 0, 0 }}},
+	{ MODKEY|ShiftMask,                     XK_Down,            moveresize,         {.v = (int []){ 0, 0, 0, 25 }}},
+	{ MODKEY|ShiftMask,                     XK_Up,              moveresize,         {.v = (int []){ 0, 0, 0, -25 }}},
+	{ MODKEY|ShiftMask,                     XK_Right,           moveresize,         {.v = (int []){ 0, 0, 25, 0 }}},
+	{ MODKEY|ShiftMask,                     XK_Left,            moveresize,         {.v = (int []){ 0, 0, -25, 0 }}},
 	TAGKEYS(                                XK_1,                                   0)
 	TAGKEYS(                                XK_2,                                   1)
 	TAGKEYS(                                XK_3,                                   2)
