@@ -18,10 +18,43 @@ static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeStatus]={ col_cyan, col_gray1,  NULL  },
 };
 
 const char *spcmd1[] = {"st", "-c", "st-256color", "-n", "spterm", "-t", "Scratchpad", \
 	"-g", "120x34", NULL };
+
+
+/* status bar */
+static const Block blocks[] = {
+	/* fg           command                             interval    signal */
+	{ "#FFFFFF",    "sb-power.sh",                      0,          0},
+	{ col_gray3,    "sb-battery.sh",                    10,         0},
+	{ col_gray3,    "sb-datetime.sh",                   30,         1},
+	{ col_gray3,    "sb-volume.sh",                     0,          2},
+	{ col_gray3,    "sb-brightness.sh",                 0,          3},
+	// { col_gray1,    "sb-disk",                          9000,        2},
+	// { col_gray3,    "sb-internet",                      10,          4},
+	// { col_cyan,     "sb-mailbox",                       0,           5},
+	// { "#000001",    "sb-moonphase",                     0,           6},
+	// { "#1F0077",    "sb-forecast",                      0,           7},
+	// { "#000077",    "sb-volume",                        0,           8},
+	// { "#F77000",    "sb-pacpackages",                   0,           9},
+	// { "#177000",    "sb-sync",                          0,           10},
+	// { col_gray1,    "sb-mpc",                           0,           26},
+	// { col_gray2,    "sb-music",                         0,           11},
+	// { col_gray3,    "sb-tasks",                         10,          12},
+	// { col_gray4,    "sb-notes",                         0,           13},
+	// { col_cyan,     "echo '';cat /tmp/recordingicon",   0,           14},
+};
+
+/* inverse the order of the blocks, comment to disable */
+#define INVERSED	1
+/* delimeter between blocks commands. NULL character ('\0') means no delimeter. */
+static char delimiter[] = " | ";
+/* max number of character that one block command can output */
+#define CMDLENGTH	50
+
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -36,14 +69,15 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class                instance    title               tags mask       isfloating  monitor */
-	{ "Gimp",               NULL,       NULL,               0,              1,          -1 },
-	{ "Inkscape",           NULL,       NULL,               0,              1,          -1 },
-	{ "Firefox",            NULL,       NULL,               1 << 8,         0,          -1 },
-	{ "qutebrowser",        NULL,       NULL,               1 << 8,         0,          -1 },
-	{ "Chromium",           NULL,       NULL,               1 << 8,         0,          -1 },
-	{ "st-256color",        "spterm",   "Scratchpad",       SPTAG(0),       1,          -1 },
-	{ "jetbrains-studio",   NULL,       NULL,               0,              1,          -1 },
+	/* class                instance        title               tags mask       isfloating  monitor */
+	{ "Gimp",               NULL,           NULL,               0,              1,          -1 },
+	{ "Inkscape",           NULL,           NULL,               0,              1,          -1 },
+	{ "Firefox",            NULL,           NULL,               1 << 8,         0,          -1 },
+	{ "qutebrowser",        NULL,           NULL,               1 << 8,         0,          -1 },
+	{ "Chromium",           NULL,           NULL,               1 << 8,         0,          -1 },
+	{ "st-256color",        "floatterm",    NULL,               0,              1,          -1 },
+	{ "st-256color",        "spterm",       "Scratchpad",       SPTAG(0),       1,          -1 },
+	{ "jetbrains-studio",   NULL,           NULL,               0,              1,          -1 },
 };
 
 /* layout(s) */
@@ -72,8 +106,6 @@ static const Layout layouts[] = {
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
-
-#define STATUSBAR "dwmblocks"
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
@@ -150,11 +182,14 @@ static const Button buttons[] = {
 	{ ClkLtSymbol,          0,              Button1,        setlayout,          {0} },
 	{ ClkLtSymbol,          0,              Button3,        setlayout,          {.v = &layouts[2]} },
 	{ ClkWinTitle,          0,              Button2,        zoom,               {0} },
-	{ ClkStatusText,        0,              Button1,        sigstatusbar,       {.i = 1} },
-	{ ClkStatusText,        0,              Button2,        sigstatusbar,       {.i = 2} },
-	{ ClkStatusText,        0,              Button3,        sigstatusbar,       {.i = 3} },
-	{ ClkStatusText,        0,              Button4,        sigstatusbar,       {.i = 4} },
-	{ ClkStatusText,        0,              Button5,        sigstatusbar,       {.i = 5} },
+
+	{ ClkStatusText,        0,              Button1,        sendstatusbar,      {.i = 1 } },
+	{ ClkStatusText,        0,              Button2,        sendstatusbar,      {.i = 2 } },
+	{ ClkStatusText,        0,              Button3,        sendstatusbar,      {.i = 3 } },
+	{ ClkStatusText,        0,              Button4,        sendstatusbar,      {.i = 4 } },
+	{ ClkStatusText,        0,              Button5,        sendstatusbar,      {.i = 5 } },
+	{ ClkStatusText,        ShiftMask,      Button1,        sendstatusbar,      {.i = 6 } },
+
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,          {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating,     {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,        {0} },
